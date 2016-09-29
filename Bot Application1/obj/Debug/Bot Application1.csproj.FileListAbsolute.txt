@@ -1,4 +1,3 @@
-c:\users\zevsa\onedrive\документы\visual studio 2015\Projects\Bot Application1\Bot Application1\obj\Debug\Bot Application1.csprojResolveAssemblyReference.cache
 c:\users\zevsa\onedrive\документы\visual studio 2015\Projects\Bot Application1\Bot Application1\bin\Bot Application1.dll.config
 c:\users\zevsa\onedrive\документы\visual studio 2015\Projects\Bot Application1\Bot Application1\bin\Bot Application1.dll
 c:\users\zevsa\onedrive\документы\visual studio 2015\Projects\Bot Application1\Bot Application1\bin\Bot Application1.pdb
@@ -42,3 +41,5 @@ c:\users\zevsa\onedrive\документы\visual studio 2015\Projects\Bot Appli
 c:\users\zevsa\onedrive\документы\visual studio 2015\Projects\Bot Application1\Bot Application1\bin\HtmlAgilityPack.pdb
 c:\users\zevsa\onedrive\документы\visual studio 2015\Projects\Bot Application1\Bot Application1\bin\HtmlAgilityPack.xml
 c:\users\zevsa\onedrive\документы\visual studio 2015\Projects\Bot Application1\Bot Application1\bin\VkNet.xml
+C:\Users\zevsa\OneDrive\Документы\Visual Studio 2015\Projects\Bot Application1\Bot Application1\bin\MySql.Data.dll
+C:\Users\zevsa\OneDrive\Документы\Visual Studio 2015\Projects\Bot Application1\Bot Application1\obj\Debug\Bot Application1.csprojResolveAssemblyReference.cache

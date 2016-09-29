@@ -9,9 +9,81 @@ using Microsoft.Bot.Connector;
 using Newtonsoft.Json;
 using VkNet;
 using VkNet.Enums.Filters;
+//Add MySql Library
+using MySql.Data.MySqlClient;
 
 namespace Bot_Application1
 {
+    class DBConnect
+    {
+        public MySqlConnection connection;
+        private string server;
+        private string database;
+        private string uid;
+        private string password;
+
+        //Constructor
+        public DBConnect()
+        {
+            Initialize();
+        }
+
+        //Initialize values
+        private void Initialize()
+        {
+            server = "zevsariy.myjino.ru";
+            database = "zevsariy_virtualmsp";
+            uid = "035848010_mspvir";
+            password = "12345678";
+            string connectionString;
+            connectionString = "SERVER=" + server + ";" + "DATABASE=" + database + ";" + "UID=" + uid + ";" + "PASSWORD=" + password + ";";
+
+            connection = new MySqlConnection(connectionString);
+        }
+
+
+        //open connection to database
+        public bool OpenConnection()
+        {
+            try
+            {
+                connection.Open();
+                return true;
+            }
+            catch (MySqlException ex)
+            {
+                //When handling errors, you can your application's response based on the error number.
+                //The two most common error numbers when connecting are as follows:
+                //0: Cannot connect to server.
+                //1045: Invalid user name and/or password.
+                switch (ex.Number)
+                {
+                    case 0:
+                        Console.WriteLine("Cannot connect to server.  Contact administrator");
+                        break;
+
+                    case 1045:
+                        Console.WriteLine("Invalid username/password, please try again");
+                        break;
+                }
+                return false;
+            }
+        }
+        //Close connection
+        public bool CloseConnection()
+        {
+            try
+            {
+                connection.Close();
+                return true;
+            }
+            catch (MySqlException ex)
+            {
+                Console.WriteLine(ex.Message);
+                return false;
+            }
+        }
+    }
     [BotAuthentication]
     public class MessagesController : ApiController
     {
@@ -33,6 +105,37 @@ namespace Bot_Application1
             return phrases[ph_id];
         }
 
+        public string get_answer(string query)
+        {
+            string answer = "Пусто";
+            DBConnect MyDB = new DBConnect();
+            if (MyDB.OpenConnection() == true)
+            {
+                //Create Command
+                MySqlCommand cmd = new MySqlCommand(query, MyDB.connection);
+                //Create a data reader and Execute the command
+                MySqlDataReader dataReader = cmd.ExecuteReader();
+
+                //Read the data and store them in the list
+                while (dataReader.Read())
+                {
+                    answer = dataReader["answer"].ToString();
+                }
+
+                //close Data Reader
+                dataReader.Close();
+
+                //close Connection
+                MyDB.CloseConnection();
+
+                //return list to be displayed
+                return answer;
+            }
+            else
+            {
+                return answer;
+            }
+        }
         public async Task<HttpResponseMessage> Post([FromBody]Activity activity)
         {
             if (activity.Type == ActivityTypes.Message)
@@ -40,9 +143,11 @@ namespace Bot_Application1
                 ConnectorClient connector = new ConnectorClient(new Uri(activity.ServiceUrl));
 
                 activity.Text = activity.Text.ToLower();
-
-                string texta = "";
-                switch (activity.Text)
+                activity.Text = activity.Text.Replace(" ", "%' AND question LIKE '%");
+                Console.WriteLine(activity.Text);
+                string texta = "Пустой Текста";
+                texta = get_answer("Select answer FROM mspbot WHERE question LIKE '%" + activity.Text + "%'");
+                /* switch (activity.Text)
                 {
                     case "кто ты?":
                         texta = "Я, простая симуляция MSP, основанного не реальных людях)";
@@ -60,6 +165,7 @@ namespace Bot_Application1
                         texta = "Для помощи в работе со мной напишите 'помощь'";
                         break;
                 }
+                */
                 Activity reply = activity.CreateReply(texta);
                 await connector.Conversations.ReplyToActivityAsync(reply);
             }
