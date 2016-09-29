@@ -23,18 +23,18 @@ namespace Bot_Application1
 
                 activity.Text = activity.Text.ToLower();
 
+                string texta = "";
 
                 if (activity.Text == "pismo")
                 {
-                    string texta = "fsdfsd";
-                    Activity reply = activity.CreateReply(texta);
-                    await connector.Conversations.ReplyToActivityAsync(reply);
+                    texta = "pismo отправлено";   
                 }
                 else
                 {
-                    Activity reply = activity.CreateReply("What do you want?");
-                    await connector.Conversations.ReplyToActivityAsync(reply);
+                    
                 }
+                Activity reply = activity.CreateReply(texta);
+                await connector.Conversations.ReplyToActivityAsync(reply);
             }
             var response = Request.CreateResponse(HttpStatusCode.OK);
             return response;
