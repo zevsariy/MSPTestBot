@@ -41,3 +41,4 @@ c:\users\zevsa\onedrive\документы\visual studio 2015\Projects\Bot Appli
 c:\users\zevsa\onedrive\документы\visual studio 2015\Projects\Bot Application1\Bot Application1\bin\HtmlAgilityPack.pdb
 c:\users\zevsa\onedrive\документы\visual studio 2015\Projects\Bot Application1\Bot Application1\bin\HtmlAgilityPack.xml
 c:\users\zevsa\onedrive\документы\visual studio 2015\Projects\Bot Application1\Bot Application1\bin\VkNet.xml
+c:\users\zevsa\onedrive\документы\visual studio 2015\Projects\Bot Application1\Bot Application1\obj\Release\Bot Application1.csprojResolveAssemblyReference.cache

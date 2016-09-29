@@ -32,6 +32,7 @@ namespace Bot_Application1
             int ph_id = rnd.Next(0, 11);
             return phrases[ph_id];
         }
+
         public async Task<HttpResponseMessage> Post([FromBody]Activity activity)
         {
             if (activity.Type == ActivityTypes.Message)
