@@ -105,6 +105,18 @@ namespace Bot_Application1
             return phrases[ph_id];
         }
 
+        public string great_cuter(string phrase)
+        {
+            phrase = phrase.ToLower();
+            phrase = phrase.Replace("что такое ", "");
+            phrase = phrase.Replace(" что такое", "");
+            phrase = phrase.Replace(" что это", "");
+            phrase = phrase.Replace("что это ", "");
+            phrase = phrase.Replace("определение ", "");
+            phrase = phrase.Replace("?", "");
+            return phrase;
+        }
+
         public string get_answer(string query)
         {
             string answer = "Пусто";
@@ -117,9 +129,15 @@ namespace Bot_Application1
                 MySqlDataReader dataReader = cmd.ExecuteReader();
 
                 //Read the data and store them in the list
-                while (dataReader.Read())
+                bool flag = true;
+                while (dataReader.Read() && flag == true)
                 {
-                    answer = dataReader["answer"].ToString();
+                    flag = false;
+                    Random rnd = new Random();
+                    string s = dataReader["answer"].ToString();
+                    string[] split = s.Split(";".ToCharArray());
+                    int num = rnd.Next(0, split.Count());
+                    answer = split[num];
                 }
 
                 //close Data Reader
@@ -143,6 +161,7 @@ namespace Bot_Application1
                 ConnectorClient connector = new ConnectorClient(new Uri(activity.ServiceUrl));
 
                 activity.Text = activity.Text.ToLower();
+                activity.Text = great_cuter(activity.Text);
                 activity.Text = activity.Text.Replace(" ", "%' AND question LIKE '%");
                 Console.WriteLine(activity.Text);
                 string texta = "Пустой Текста";
