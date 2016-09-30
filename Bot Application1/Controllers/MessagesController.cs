@@ -15,6 +15,7 @@ using System.Collections.Generic;
 
 namespace Bot_Application1
 {
+    //Описываю класс для работы с базой данных
     class DBConnect
     {
         public MySqlConnection connection;
@@ -23,27 +24,27 @@ namespace Bot_Application1
         private string uid;
         private string password;
 
-        //Constructor
+        //Конструктор класса
         public DBConnect()
         {
             Initialize();
         }
 
-        //Initialize values
+        //Иницилизация подключения к БД
         private void Initialize()
         {
+            //Данные для подключения к БД
             server = "zevsariy.myjino.ru";
             database = "zevsariy_virtualmsp";
             uid = "035848010_mspvir";
             password = "12345678";
             string connectionString;
             connectionString = "SERVER=" + server + ";" + "DATABASE=" + database + ";" + "UID=" + uid + ";" + "PASSWORD=" + password + ";";
-
             connection = new MySqlConnection(connectionString);
         }
 
 
-        //open connection to database
+        //Открытие подключения к БД
         public bool OpenConnection()
         {
             try
@@ -70,7 +71,7 @@ namespace Bot_Application1
                 return false;
             }
         }
-        //Close connection
+        //Закрытие подключения к БД
         public bool CloseConnection()
         {
             try
@@ -85,9 +86,11 @@ namespace Bot_Application1
             }
         }
     }
+    //Контроллер сообщений из чата
     [BotAuthentication]
     public class MessagesController : ApiController
     {
+        //Великий обрезатель простых фраз
         public string great_cuter(string phrase)
         {
             phrase = phrase.ToLower();
@@ -106,6 +109,7 @@ namespace Bot_Application1
             return phrase;
         }
 
+        //Функция для получения ответов на вопросы
         public string get_answer(string query)
         {
             string answer = "Для получения справки по общению со мной скажите \"помощь\")";
@@ -118,10 +122,12 @@ namespace Bot_Application1
                 MySqlDataReader dataReader = cmd.ExecuteReader();
 
                 //Read the data and store them in the list
+                //Флаг нужен чтобы вывести только первый ответ из БД, а не несколько
                 bool flag = true;
                 while (dataReader.Read() && flag == true)
                 {
                     flag = false;
+                    //Рандомный вариант ответа из базы данных за счет сплита ответа по спец знаку
                     Random rnd = new Random();
                     string s = dataReader["answer"].ToString();
                     string[] split = s.Split(";".ToCharArray());
@@ -144,8 +150,10 @@ namespace Bot_Application1
             }
         }
 
+        //Получить ответ-реакцию на холивар
         public string get_holywar_answer(string query)
         {
+            //-1 значит нет холивара
             string answer = "-1";
             DBConnect MyDB = new DBConnect();
             if (MyDB.OpenConnection() == true)
@@ -156,6 +164,7 @@ namespace Bot_Application1
                 MySqlDataReader dataReader = cmd.ExecuteReader();
 
                 //Read the data and store them in the list
+                //Флаг опять таки для одного оборота цикла
                 bool flag = true;
                 while (dataReader.Read() && flag == true)
                 {
@@ -182,6 +191,7 @@ namespace Bot_Application1
             }
         }
 
+        //Функция получения ивентов
         public string get_events_answer(string query)
         {
             string temp = "";
@@ -285,17 +295,25 @@ namespace Bot_Application1
                     List<CardImage> cardImages = new List<CardImage>();
                     cardImages.Add(new CardImage(url: "http://virtual-msp.2tsy.ru/team.jpg"));
                     List<CardAction> cardButtons = new List<CardAction>();
-                    CardAction plButton = new CardAction()
+                    CardAction MSP_But = new CardAction()
                     {
                     Value = "https://vk.com/rumsp",
                     Type = "openUrl",
-                    Title = "Связаться с авторами"
+                    Title = "MSP ВКонтакте"
                     };
-                    cardButtons.Add(plButton);
+                    CardAction MSP_School = new CardAction()
+                    {
+                        Value = "http://msp.2tsy.ru/",
+                        Type = "openUrl",
+                        Title = "Школа MSP"
+                    };
+                    cardButtons.Add(MSP_But);
+                    cardButtons.Add(MSP_School);
                     HeroCard plCard = new HeroCard()
                     {
                                Title = "Разработчики",
-                               Subtitle = "Никонорова Анастасия \n\n Филиппов Дмитрий \n\n Ткаченко Сергей",
+                               Subtitle = "Никонорова Анастасия <br> Филиппов Дмитрий <br/> Ткаченко Сергей",
+                               Text = "Мы студенты партнеры Microsoft. Наша цель - развивать и продвигать технологии в массы. Люди должны знать больше.©",
                                Images = cardImages,
                                Buttons = cardButtons
                     };
