@@ -192,9 +192,9 @@ namespace Bot_Application1
         }
 
         //Функция получения ивентов
-        public string get_events_answer(string query)
+        public List<CardAction> get_events_answer(string query)
         {
-            string temp = "";
+            List<CardAction> events_buttons = new List<CardAction>();
             DBConnect MyDB = new DBConnect();
             if (MyDB.OpenConnection() == true)
             {
@@ -202,14 +202,17 @@ namespace Bot_Application1
                 MySqlCommand cmd = new MySqlCommand(query, MyDB.connection);
                 //Create a data reader and Execute the command
                 MySqlDataReader dataReader = cmd.ExecuteReader();
-
+                int reader_size = dataReader.FieldCount;
+                List<CardAction> temp;
                 //Read the data and store them in the list
-                bool flag = true;
-                int iter = 1;
-                while (dataReader.Read() && flag == true)
+                while (dataReader.Read())
                 {
-                    temp += iter + ") " + dataReader["name"] + " Дата: " + dataReader["date"] + " Ссылка: " + dataReader["link"] + "  ";
-                    iter++;
+                    events_buttons.Add(new CardAction
+                    {
+                            Value = dataReader["link"].ToString(),
+                            Type = "openUrl",
+                            Title = dataReader["date"].ToString() + dataReader["name"].ToString()
+                    });
                 }
 
                 //close Data Reader
@@ -219,18 +222,11 @@ namespace Bot_Application1
                 MyDB.CloseConnection();
 
                 //return list to be displayed
-                if (temp == "")
-                {
-                    return "-1";
-                }
-                else
-                {
-                    return temp;
-                }
+                return events_buttons;
             }
             else
             {
-                return "-1";
+                return events_buttons;
             }
         }
 
@@ -240,14 +236,14 @@ namespace Bot_Application1
             {
                 string message_got = activity.Text;
                 ConnectorClient connector = new ConnectorClient(new Uri(activity.ServiceUrl));
-
+                bool event_flag = false;
                 string holywar_text = activity.Text;
                 holywar_text = holywar_text.ToLower();
                 holywar_text = great_cuter(holywar_text);
                 holywar_text = holywar_text.Replace(" ", "%' OR question LIKE '%");
                 string holywar_rez = get_holywar_answer("SELECT answer FROM holywars WHERE question LIKE '%" + holywar_text + "%'");
 
-                string event_rez = "";
+                List<CardAction> events_buttons = new List<CardAction>();
                 if (activity.Text == "мероприятия" 
                     || activity.Text == "мероприятие"
                     || activity.Text == "ближайшее мероприятие"
@@ -256,32 +252,46 @@ namespace Bot_Application1
                     || activity.Text == "ивенты"
                     || activity.Text == "events")
                 {
-                    event_rez = get_events_answer("SELECT name, date, link FROM events WHERE date > Now()");
+                    events_buttons = get_events_answer("SELECT name, date, link FROM events WHERE date > Now()");
                 }
                 else
                 {
-                    event_rez = "-1";
+                    events_buttons = new List<CardAction>();
                 }
 
                 activity.Text = activity.Text.ToLower();
                 activity.Text = great_cuter(activity.Text);
                 activity.Text = activity.Text.Replace(" ", "%' AND question LIKE '%");
                 
-                string texta = "Пустой Текста";
+                string texta = "";
 
                 if (holywar_rez != "-1")
                 {
                     texta = holywar_rez;
                 }
-                else if (event_rez != "-1")
+                else if (events_buttons.ToArray().Length > 0)
                 {
-                    texta = event_rez;
+                    event_flag = true;
+                    Activity replyToConversation = activity.CreateReply("");
+                    replyToConversation.Recipient = activity.From;
+                    replyToConversation.Type = "message";
+                    replyToConversation.Attachments = new List<Attachment>();
+                    List<CardImage> cardImages = new List<CardImage>();
+                    cardImages.Add(new CardImage(url: "http://virtual-msp.2tsy.ru/team.jpg"));
+                    HeroCard plCard = new HeroCard()
+                    {
+                        Title = "Мероприятия",
+                        Buttons = events_buttons
+                    };
+                    Attachment plAttachment = plCard.ToAttachment();
+                    replyToConversation.Attachments.Add(plAttachment);
+                    var reply = await connector.Conversations.SendToConversationAsync(replyToConversation);
                 }
                 else
                 {
                     texta = get_answer("Select answer FROM mspbot WHERE question LIKE '%" + activity.Text + "%'");
                 }
-                if(message_got != "Разработчики")
+                if(message_got != "разработчики" && !event_flag)
                 {
                     Activity reply = activity.CreateReply(texta);
                     await connector.Conversations.ReplyToActivityAsync(reply);
@@ -312,14 +322,17 @@ namespace Bot_Application1
                     HeroCard plCard = new HeroCard()
                     {
                                Title = "Разработчики",
-                               Subtitle = "Никонорова Анастасия <br> Филиппов Дмитрий <br/> Ткаченко Сергей",
+                               Subtitle = "Никонорова Анастасия, Филиппов Дмитрий, Ткаченко Сергей",
                                Text = "Мы студенты партнеры Microsoft. Наша цель - развивать и продвигать технологии в массы. Люди должны знать больше.©",
                                Images = cardImages,
                                Buttons = cardButtons
                     };
-                    Attachment plAttachment = plCard.ToAttachment();
-                    replyToConversation.Attachments.Add(plAttachment);
-                    var reply = await connector.Conversations.SendToConversationAsync(replyToConversation);
+                    if (event_flag == false)
+                    {
+                        Attachment plAttachment = plCard.ToAttachment();
+                        replyToConversation.Attachments.Add(plAttachment);
+                        var reply = await connector.Conversations.SendToConversationAsync(replyToConversation);
+                    }
                 }
             }
             var response = Request.CreateResponse(HttpStatusCode.OK);
