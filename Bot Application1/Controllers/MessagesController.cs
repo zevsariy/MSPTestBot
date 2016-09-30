@@ -11,6 +11,7 @@ using VkNet;
 using VkNet.Enums.Filters;
 //Add MySql Library
 using MySql.Data.MySqlClient;
+using System.Collections.Generic;
 
 namespace Bot_Application1
 {
@@ -227,6 +228,7 @@ namespace Bot_Application1
         {
             if (activity.Type == ActivityTypes.Message)
             {
+                string message_got = activity.Text;
                 ConnectorClient connector = new ConnectorClient(new Uri(activity.ServiceUrl));
 
                 string holywar_text = activity.Text;
@@ -269,27 +271,38 @@ namespace Bot_Application1
                 {
                     texta = get_answer("Select answer FROM mspbot WHERE question LIKE '%" + activity.Text + "%'");
                 }
-                    /* switch (activity.Text)
+                if(message_got != "Разработчики")
                 {
-                    case "кто ты?":
-                        texta = "Я, простая симуляция MSP, основанного не реальных людях)";
-                        break;
-                    case "помощь":
-                        texta = "Вы можете использовать следующие команды: что почитать? - посоветую какие книги почитать; кто ты? - бот расскажет кто он есть; цитата - я расскажу тебе одну из цитат Билла Гейтса;";
-                        break;
-                    case "цитата":
-                        texta = get_bill_phrase();
-                        break;
-                    case "что почитать?":
-                        texta = "https://mva.microsoft.com ; https://azure.microsoft.com/ru-ru/get-started/;";
-                        break;
-                    default:
-                        texta = "Для помощи в работе со мной напишите 'помощь'";
-                        break;
+                    Activity reply = activity.CreateReply(texta);
+                    await connector.Conversations.ReplyToActivityAsync(reply);
                 }
-                */
-                Activity reply = activity.CreateReply(texta);
-                await connector.Conversations.ReplyToActivityAsync(reply);
+                else
+                {
+                    Activity replyToConversation = activity.CreateReply("");
+                    replyToConversation.Recipient = activity.From;
+                    replyToConversation.Type = "message";
+                    replyToConversation.Attachments = new List<Attachment>();
+                    List<CardImage> cardImages = new List<CardImage>();
+                    cardImages.Add(new CardImage(url: "http://virtual-msp.2tsy.ru/team.jpg"));
+                    List<CardAction> cardButtons = new List<CardAction>();
+                    CardAction plButton = new CardAction()
+                    {
+                    Value = "https://vk.com/rumsp",
+                    Type = "openUrl",
+                    Title = "Связаться с авторами"
+                    };
+                    cardButtons.Add(plButton);
+                    HeroCard plCard = new HeroCard()
+                    {
+                               Title = "Разработчики",
+                               Subtitle = "Никонорова Анастасия \n\n Филиппов Дмитрий \n\n Ткаченко Сергей",
+                               Images = cardImages,
+                               Buttons = cardButtons
+                    };
+                    Attachment plAttachment = plCard.ToAttachment();
+                    replyToConversation.Attachments.Add(plAttachment);
+                    var reply = await connector.Conversations.SendToConversationAsync(replyToConversation);
+                }
             }
             var response = Request.CreateResponse(HttpStatusCode.OK);
             return response;
