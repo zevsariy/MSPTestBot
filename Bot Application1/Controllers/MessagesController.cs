@@ -181,6 +181,48 @@ namespace Bot_Application1
             }
         }
 
+        public string get_events_answer(string query)
+        {
+            string temp = "";
+            DBConnect MyDB = new DBConnect();
+            if (MyDB.OpenConnection() == true)
+            {
+                //Create Command
+                MySqlCommand cmd = new MySqlCommand(query, MyDB.connection);
+                //Create a data reader and Execute the command
+                MySqlDataReader dataReader = cmd.ExecuteReader();
+
+                //Read the data and store them in the list
+                bool flag = true;
+                int iter = 1;
+                while (dataReader.Read() && flag == true)
+                {
+                    temp += iter + ") " + dataReader["name"] + " Дата: " + dataReader["date"] + " Ссылка: " + dataReader["link"] + "  ";
+                    iter++;
+                }
+
+                //close Data Reader
+                dataReader.Close();
+
+                //close Connection
+                MyDB.CloseConnection();
+
+                //return list to be displayed
+                if (temp == "")
+                {
+                    return "-1";
+                }
+                else
+                {
+                    return temp;
+                }
+            }
+            else
+            {
+                return "-1";
+            }
+        }
+
         public async Task<HttpResponseMessage> Post([FromBody]Activity activity)
         {
             if (activity.Type == ActivityTypes.Message)
@@ -191,16 +233,37 @@ namespace Bot_Application1
                 holywar_text = holywar_text.ToLower();
                 holywar_text = great_cuter(holywar_text);
                 holywar_text = holywar_text.Replace(" ", "%' OR question LIKE '%");
+                string holywar_rez = get_holywar_answer("SELECT answer FROM holywars WHERE question LIKE '%" + holywar_text + "%'");
+
+                string event_rez = "";
+                if (activity.Text == "мероприятия" 
+                    || activity.Text == "мероприятие"
+                    || activity.Text == "ближайшее мероприятие"
+                    || activity.Text == "ближайшие мероприятия"
+                    || activity.Text == "куда сходить"
+                    || activity.Text == "ивенты"
+                    || activity.Text == "events")
+                {
+                    event_rez = get_events_answer("SELECT name, date, link FROM events WHERE date > Now()");
+                }
+                else
+                {
+                    event_rez = "-1";
+                }
 
                 activity.Text = activity.Text.ToLower();
                 activity.Text = great_cuter(activity.Text);
                 activity.Text = activity.Text.Replace(" ", "%' AND question LIKE '%");
                 
                 string texta = "Пустой Текста";
-                string holywar_rez = get_holywar_answer("SELECT answer FROM holywars WHERE question LIKE '%" + holywar_text + "%'");
+
                 if (holywar_rez != "-1")
                 {
                     texta = holywar_rez;
+                }
+                else if (event_rez != "-1")
+                {
+                    texta = event_rez;
                 }
                 else
                 {
